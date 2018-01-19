@@ -1,0 +1,59 @@
+
+#1 导入数据
+
+bin\neo4j-admin import --database=testgraph.db --id-type=STRING --nodes import/user_node.csv --nodes import/phone_node.csv --nodes import/idnum_node.csv --relationships import/usercallphone_relationships.csv --relationships import/useridnum_relationships.csv --relationships import/userphone_relationships.csv --ignore-duplicate-nodes=true --ignore-missing-nodes=true
+
+创建索引
+create index on :Phone(phone)
+
+#2 打标签
+
+#2.1 找出两两互通的号码
+
+match (ps1:Phone)-[r1:CONTACTS]->(pe1:Phone),(ps2:Phone)-[r2:CONTACTS]->(pe2:Phone)
+where ps1.phone = pe2.phone and pe1.phone = ps2.phone and ps1.type in ['0', '1'] and pe1.type in ['0', '1']
+return ps1,r1,pe1
+
+可能会出现dbms.memory.heap.max_size不足
+
+修改conf/neo4j.conf
+dbms.memory.heap.max_size=2048m
+
+#查询快速 
+语句优化、创建索引
+
+#查询内存问题
+参考map reduce思想，分批查询、合并
+使用 skip limit
+
+
+#2.2 对被叫多的电话打上标签
+
+#找出次数多的
+match(ps:Phone)-[r:CONTACTS]->(pe:Phone)
+with pe.phone as phone,ps.phone as target skip {} limit 1000000
+return phone,count(target) AS phonenum
+
+通过爬虫去确定标签值
+
+#标签更新
+MATCH(p:Phone)
+WHERE p.phone in ['{}']
+set p.label = '{}'
+return count(p.label) as num 
+
+#确认黑中介（部分标签不覆盖）
+
+match (ps:Phone)-[r:CONTACTS]->(pe:Phone)
+where (not pe.label in ['yys','bank','blackgroup','bad','web','black']) and ps.label in ['blackgroup','bad','black']
+with pe,count(ps) as num
+where num > 1
+set pe.label = 'interblack2'
+return count(pe)
+
+match (ps:Phone)-[r:CONTACTS]->(pe:Phone)
+where (not pe.label in ['yys','bank','blackgroup','bad','web','black']) and ps.label = 'blackgroup'
+with pe,count(ps) as num
+where num > 1
+set pe.label = 'interblack1'
+return count(pe)

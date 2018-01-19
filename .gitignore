@@ -1,0 +1,12 @@
+# Pycharm
+.idea
+
+# Python
+*.py[cod]
+*.csv
+*.log
+*.json
+*.m
+*.pkl
+*.log
+dbconfig.py
