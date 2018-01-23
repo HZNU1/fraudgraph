@@ -19,7 +19,7 @@ def count_phone_num():
 		return count(r) as num
 	"""
 	eg = ExeGraph(dbconfig.GRAPH_CONFIG)
-	eg.connect()
+	eg.connect_db()
 	res = eg.search(cql)
 	num = res[0]['num']
 	snum = list(range(0,num,1000000))
@@ -117,7 +117,7 @@ def update_label(phonelist, label):
 	""".format(phonel, label)
 
 	eg = ExeGraph(dbconfig.GRAPH_CONFIG)
-	eg.connect()
+	eg.connect_db()
 	res = eg.search(cypher)
 	print('已更新{}个{}'.format(res[0]['num'], label))
 

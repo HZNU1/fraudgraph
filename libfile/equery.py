@@ -1,52 +1,8 @@
 # -*- coding: utf-8 -*-
-
-from neo4j.v1 import GraphDatabase 
 import pymysql.cursors
 
 import requests
 from lxml import etree
-
-class ExeGraph:
-  """ 对graph的操作类 """
-
-  def __init__(self, config):
-    """" 初始化参数 """
-
-    self.url = config.get('url')
-    self.user = config.get('user')
-    self.password = config.get('password')
-    self.driver = None
-
-  def connect(self):
-    """ 数据库连接 """
-
-    self.driver = GraphDatabase.driver(self.url, auth=(self.user, self.password))
-    
-
-  def create(self, cypher):
-    """create 命令"""
-    """ no return """
-
-    try:
-        with self.driver.session() as session:  
-            with session.begin_transaction() as tx:
-                tx.run(cypher)
-
-    except Exception as e:  
-        raise e
-
-  def search(self, cypher):
-    """search 命令"""
-    """ return list """
-
-    try:
-      with self.driver.session() as session:
-        with session.begin_transaction() as tx:
-          result = tx.run(cypher)
-    except Exception as e:  
-        raise e
-              
-    return [record for record in result.records()]
 
 def execute_select(config, sql):
     """ 查询数据 mysql """
@@ -70,10 +26,12 @@ def search_label_inbaidu(phone):
     label = 'no sign'
 
     if not (phone.startswith('4') or phone.startswith('0')):
-        if '10086' in phone:
+        if phone.endswith('10086'):
             label = '中国移动'
             return label
-            
+        elif phone.endswith('10010'):
+            label = '中国联通'
+            return label
         elif len(phone) == 11:
                 phone = phone
         else:

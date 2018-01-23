@@ -5,7 +5,7 @@ import queue
 import json
 
 from libfile import dbconfig
-from libfile.equery import ExeGraph
+from libfile.graphQuery import ExeGraph
 
 CYPHER = """ 
     match (ps1:Phone)-[r1:CONTACTS]->(pe1:Phone),(ps2:Phone)-[r2:CONTACTS]->(pe2:Phone)
@@ -22,7 +22,7 @@ def search_one():
 	runed_list= []
 
 	eg = ExeGraph(dbconfig.GRAPH_CONFIG)
-	eg.connect()
+	eg.connect_db()
 
 	while not queues.empty():
 
@@ -54,7 +54,7 @@ def search_one():
 def all_circle():
 
 	eg = ExeGraph(dbconfig.GRAPH_CONFIG)
-	eg.connect()
+	eg.connect_db()
 
 	cypher = """ 
 	    match (ps1:Phone)-[r1:CONTACTS]->(pe1:Phone),(ps2:Phone)-[r2:CONTACTS]->(pe2:Phone)
@@ -101,21 +101,29 @@ def execute_cql(filepath, label):
 	circledict = json.load(open(filepath))
 	black_label = []
 
+	eg = ExeGraph(dbconfig.GRAPH_CONFIG)
+	eg.connect_db()
+
+	cql = """
+		MATCH (p:Phone)
+		WHERE p.phone in ['{}']
+		SET p.level = {}
+	"""
+	for groupkey, members in circledict.items():
+		print(groupkey)
+		level = len(members)
+		runcql = cql.format("','".join(members), level)
+		eg.create(runcql)
+
+		black_label.extend(members)
+
 	cql = """
 		MATCH (p:Phone)
 		WHERE p.phone in ['{}']
 		SET p.label = '{}'
 	"""
-
-	for groupkey, members in circledict.items():
-		black_label.extend(members)
-
-	cql = cql.format("','".join(black_label),label)
-
-	eg = ExeGraph(dbconfig.GRAPH_CONFIG)
-	eg.connect()
+	cql = cql.format("','".join(black_label), label)
 	eg.create(cql)
-	
 
 if __name__ == '__main__':
 	#all_circle()
