@@ -37,6 +37,7 @@ def query_one():
 def query_maney():
 
     user = pd.read_csv('data/testuser.csv')
+    k,j,jbad,jblack,jblackgroup,jinterblack1,jinterblack2,jweb,jbank = 0,0,0,0,0,0,0,0,0
 
     for i in range(len(user)):
         userId = user.ix[i]['id']
@@ -60,8 +61,41 @@ def query_maney():
 
         #record = find_label(content_dict, phoneId)
         jsondict = find_api(content_dict, phoneId)
+        
+        if jsondict['label'] is None:
+            j += 1
+            if all([value is None for value in jsondict.values()]):
+                k += 1
+            if jsondict['bad'] is None:
+                jbad += 1
+            if jsondict['black'] is None:
+                jblack += 1
+            if jsondict['blackgroup'] is None:
+                jblackgroup += 1
+            if jsondict['interblack1'] is None:
+                jinterblack1 += 1
+            if jsondict['interblack2'] is None:
+                jinterblack2 += 1
+            if jsondict['web'] is None:
+                jweb += 1
+            if jsondict['bank'] is None:
+                jbank += 1
+
+        print(userId)
+        print(phoneId)
         print(jsondict)
 
+    print('未覆盖量:'+ str(k))
+    print('未存在于数据库的量:' + str(j))
+    print('总测试量:'+ str(len(user)))
+
+    print('jbad:'+str(jbad))
+    print('jblack:'+str(jblack))
+    print('jblackgroup:'+str(jblackgroup))
+    print('jinterblack1:'+str(jinterblack1))
+    print('jinterblack2:'+str(jinterblack2))
+    print('jweb:'+str(jweb))
+    print('jbank:'+str(jbank))
 
 def query_group():
 
@@ -284,4 +318,4 @@ def find_api(content_dict, phone):
     
 
 if __name__ == '__main__':
-    query_group()
+    query_maney()
